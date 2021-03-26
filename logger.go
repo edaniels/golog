@@ -24,7 +24,9 @@ func init() {
 // from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
 // but disable stacktraces.
 var defaultProductionConfig = zap.Config{
-	Encoding: "json",
+	Level:       NewAtomicLevelAt(DebugLevel),
+	Development: true,
+	Encoding:    "json",
 	EncoderConfig: zapcore.EncoderConfig{
 		TimeKey:        "ts",
 		LevelKey:       "level",
@@ -47,6 +49,7 @@ var defaultProductionConfig = zap.Config{
 // from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
 // but disable stacktraces, use same keys as prod, and color levels.
 var defaultDevelopmentConfig = zap.Config{
+	Level:    NewAtomicLevelAt(DebugLevel),
 	Encoding: "console",
 	EncoderConfig: zapcore.EncoderConfig{
 		TimeKey:        "ts",
