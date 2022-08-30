@@ -2,6 +2,7 @@ package golog
 
 import (
 	"testing"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -24,8 +25,8 @@ func init() {
 // from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
 // but disable stacktraces.
 var defaultProductionConfig = zap.Config{
-	Level:       zap.NewAtomicLevelAt(zap.DebugLevel),
-	Development: true,
+	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+	Development: false,
 	Encoding:    "json",
 	EncoderConfig: zapcore.EncoderConfig{
 		TimeKey:        "ts",
@@ -43,6 +44,30 @@ var defaultProductionConfig = zap.Config{
 	},
 	DisableStacktrace: true,
 	OutputPaths:       []string{"stdout"},
+	ErrorOutputPaths:  []string{"stderr"},
+}
+
+// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
+// but disable stacktraces.
+var defaultProductionGCPCloudConfig = zap.Config{
+	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+	Development: false,
+	Encoding:    "json",
+	EncoderConfig: zapcore.EncoderConfig{
+		TimeKey:        "timestamp",
+		LevelKey:       "severity",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "message",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    encodeLevel,
+		EncodeTime:     rFC3339NanoTimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	},
+	DisableStacktrace: true,
+	OutputPaths:       []string{"stderr"},
 	ErrorOutputPaths:  []string{"stderr"},
 }
 
@@ -79,6 +104,15 @@ func NewLogger(name string) Logger {
 	return logger.Sugar().Named(name)
 }
 
+// NewLoggerForGCP returns a new logger using the default production configuration.
+func NewLoggerForGCP(name string) Logger {
+	logger, err := defaultProductionGCPCloudConfig.Build()
+	if err != nil {
+		Global.Fatal(err)
+	}
+	return logger.Sugar().Named(name)
+}
+
 // NewDevelopmentLogger returns a new logger using the default development configuration.
 func NewDevelopmentLogger(name string) Logger {
 	logger, err := defaultDevelopmentConfig.Build()
@@ -102,4 +136,25 @@ func NewObservedTestLogger(t *testing.T) (Logger, *observer.ObservedLogs) {
 		return zapcore.NewTee(c, observerCore)
 	}))
 	return logger.Sugar(), observedLogs
+}
+
+// rFC3339NanoTimeEncoder serializes a time.Time to an RFC3339Nano-formatted string with nanoseconds precision.
+func rFC3339NanoTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format(time.RFC3339Nano))
+}
+
+// encodeLevel maps the internal Zap log level to the appropriate Stackdriver level.
+func encodeLevel(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(logLevelSeverity[l])
+}
+
+// See: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#LogSeverity
+var logLevelSeverity = map[zapcore.Level]string{
+	zapcore.DebugLevel:  "DEBUG",
+	zapcore.InfoLevel:   "INFO",
+	zapcore.WarnLevel:   "WARNING",
+	zapcore.ErrorLevel:  "ERROR",
+	zapcore.DPanicLevel: "CRITICAL",
+	zapcore.PanicLevel:  "ALERT",
+	zapcore.FatalLevel:  "EMERGENCY",
 }
