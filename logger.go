@@ -15,89 +15,93 @@ type Logger = *zap.SugaredLogger
 var Global Logger
 
 func init() {
-	logger, err := defaultDevelopmentConfig.Build()
-	if err != nil {
-		panic(err)
-	}
+	logger := zap.Must(NewDevelopmentLoggerConfig().Build())
 	Global = logger.Sugar()
 }
 
-// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
-// but disable stacktraces.
-var defaultProductionConfig = zap.Config{
-	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-	Development: false,
-	Encoding:    "json",
-	EncoderConfig: zapcore.EncoderConfig{
-		TimeKey:        "ts",
-		LevelKey:       "level",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		FunctionKey:    zapcore.OmitKey,
-		MessageKey:     "msg",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.EpochTimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-	},
-	DisableStacktrace: true,
-	OutputPaths:       []string{"stdout"},
-	ErrorOutputPaths:  []string{"stderr"},
+// NewProductionLoggerConfig returns a new default production configuration.
+func NewProductionLoggerConfig() zap.Config {
+	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
+	// but disable stacktraces.
+	return zap.Config{
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Encoding:    "console",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "ts",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeTime:     zapcore.EpochTimeEncoder,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		DisableStacktrace: true,
+		OutputPaths:       []string{"stdout"},
+		ErrorOutputPaths:  []string{"stderr"},
+	}
 }
 
-// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L98
-// but disable stacktraces.
-var defaultProductionGCPCloudConfig = zap.Config{
-	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-	Development: false,
-	Encoding:    "json",
-	EncoderConfig: zapcore.EncoderConfig{
-		TimeKey:        "timestamp",
-		LevelKey:       "severity",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		MessageKey:     "message",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    encodeLevel,
-		EncodeTime:     rFC3339NanoTimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-	},
-	DisableStacktrace: true,
-	OutputPaths:       []string{"stderr"},
-	ErrorOutputPaths:  []string{"stderr"},
+// NewLoggerConfigForGCP returns a new default production configuration for GCP.
+func NewLoggerConfigForGCP() zap.Config {
+	return zap.Config{
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Encoding:    "json",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "timestamp",
+			LevelKey:       "severity",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			MessageKey:     "message",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    encodeLevel,
+			EncodeTime:     rFC3339NanoTimeEncoder,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		DisableStacktrace: true,
+		OutputPaths:       []string{"stderr"},
+		ErrorOutputPaths:  []string{"stderr"},
+	}
 }
 
-// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
-// but disable stacktraces, use same keys as prod, and color levels.
-var defaultDevelopmentConfig = zap.Config{
-	Level:    zap.NewAtomicLevelAt(zap.DebugLevel),
-	Encoding: "console",
-	EncoderConfig: zapcore.EncoderConfig{
-		TimeKey:        "ts",
-		LevelKey:       "level",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		FunctionKey:    zapcore.OmitKey,
-		MessageKey:     "msg",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.StringDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-	},
-	DisableStacktrace: true,
-	OutputPaths:       []string{"stdout"},
-	ErrorOutputPaths:  []string{"stderr"},
+// NewDevelopmentLoggerConfig returns a new default development logger config.
+func NewDevelopmentLoggerConfig() zap.Config {
+	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
+	// but disable stacktraces, use same keys as prod, and color levels.
+	return zap.Config{
+		Level:    zap.NewAtomicLevelAt(zap.DebugLevel),
+		Encoding: "console",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "ts",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
+			EncodeDuration: zapcore.StringDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		DisableStacktrace: true,
+		OutputPaths:       []string{"stdout"},
+		ErrorOutputPaths:  []string{"stderr"},
+	}
 }
 
 // NewLogger returns a new logger using the default production configuration.
 func NewLogger(name string) Logger {
-	logger, err := defaultProductionConfig.Build()
+	logger, err := NewProductionLoggerConfig().Build()
 	if err != nil {
 		Global.Fatal(err)
 	}
@@ -106,7 +110,7 @@ func NewLogger(name string) Logger {
 
 // NewLoggerForGCP returns a new logger using the default production configuration.
 func NewLoggerForGCP(name string) Logger {
-	logger, err := defaultProductionGCPCloudConfig.Build()
+	logger, err := NewLoggerConfigForGCP().Build()
 	if err != nil {
 		Global.Fatal(err)
 	}
@@ -115,7 +119,7 @@ func NewLoggerForGCP(name string) Logger {
 
 // NewDevelopmentLogger returns a new logger using the default development configuration.
 func NewDevelopmentLogger(name string) Logger {
-	logger, err := defaultDevelopmentConfig.Build()
+	logger, err := NewDevelopmentLoggerConfig().Build()
 	if err != nil {
 		Global.Fatal(err)
 	}
