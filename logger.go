@@ -1,6 +1,7 @@
 package golog
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -12,11 +13,35 @@ import (
 
 type Logger = *zap.SugaredLogger
 
-var Global Logger
+var (
+	globalMu     sync.RWMutex
+	globalLogger = newDefaultLogger()
+)
 
-func init() {
-	logger := zap.Must(NewDevelopmentLoggerConfig().Build())
-	Global = logger.Sugar()
+func newDefaultLogger() Logger {
+	return zap.Must(NewDevelopmentLoggerConfig().Build()).Sugar()
+}
+
+// ReplaceGloabl replaces the global loggers and returns a function to reset
+// the loggers to the previous state.
+func ReplaceGloabl(logger Logger) func() {
+	globalMu.Lock()
+	prevLogger := globalLogger
+	globalLogger = logger
+	globalMu.Unlock()
+
+	return func() {
+		ReplaceGloabl(prevLogger)
+	}
+}
+
+// Global returns the global logger
+func Global() Logger {
+	globalMu.RLock()
+	s := globalLogger
+	globalMu.RUnlock()
+
+	return s
 }
 
 // NewProductionLoggerConfig returns a new default production configuration.
@@ -106,7 +131,7 @@ func NewDevelopmentLoggerConfig() zap.Config {
 func NewLogger(name string) Logger {
 	logger, err := NewProductionLoggerConfig().Build()
 	if err != nil {
-		Global.Fatal(err)
+		Global().Fatal(err)
 	}
 	return logger.Sugar().Named(name)
 }
@@ -115,7 +140,7 @@ func NewLogger(name string) Logger {
 func NewLoggerForGCP(name string) Logger {
 	logger, err := NewLoggerConfigForGCP().Build()
 	if err != nil {
-		Global.Fatal(err)
+		Global().Fatal(err)
 	}
 	return logger.Sugar().Named(name)
 }
@@ -124,7 +149,7 @@ func NewLoggerForGCP(name string) Logger {
 func NewDevelopmentLogger(name string) Logger {
 	logger, err := NewDevelopmentLoggerConfig().Build()
 	if err != nil {
-		Global.Fatal(err)
+		Global().Fatal(err)
 	}
 	return logger.Sugar().Named(name)
 }
