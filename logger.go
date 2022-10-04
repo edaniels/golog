@@ -104,6 +104,15 @@ func NewLoggerConfigForGCP() zap.Config {
 func NewDevelopmentLoggerConfig() zap.Config {
 	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
 	// but disable stacktraces, use same keys as prod, and color levels.
+	logger := NewDebugLoggerConfig()
+	logger.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	return logger
+}
+
+// NewDebugLoggerConfig returns a new default development logger config.
+func NewDebugLoggerConfig() zap.Config {
+	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
+	// but disable stacktraces, use same keys as prod, and color levels.
 	return zap.Config{
 		Level:    zap.NewAtomicLevelAt(zap.DebugLevel),
 		Encoding: "console",
@@ -148,6 +157,15 @@ func NewLoggerForGCP(name string) Logger {
 // NewDevelopmentLogger returns a new logger using the default development configuration.
 func NewDevelopmentLogger(name string) Logger {
 	logger, err := NewDevelopmentLoggerConfig().Build()
+	if err != nil {
+		Global().Fatal(err)
+	}
+	return logger.Sugar().Named(name)
+}
+
+// NewDevelopmentLogger returns a new logger using the default development configuration.
+func NewDebugLogger(name string) Logger {
+	logger, err := NewDebugLoggerConfig().Build()
 	if err != nil {
 		Global().Fatal(err)
 	}
