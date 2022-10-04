@@ -104,30 +104,12 @@ func NewLoggerConfigForGCP() zap.Config {
 func NewDevelopmentLoggerConfig() zap.Config {
 	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
 	// but disable stacktraces, use same keys as prod, and color levels.
-	return zap.Config{
-		Level:    zap.NewAtomicLevelAt(zap.InfoLevel),
-		Encoding: "console",
-		EncoderConfig: zapcore.EncoderConfig{
-			TimeKey:        "ts",
-			LevelKey:       "level",
-			NameKey:        "logger",
-			CallerKey:      "caller",
-			FunctionKey:    zapcore.OmitKey,
-			MessageKey:     "msg",
-			StacktraceKey:  "stacktrace",
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-			EncodeTime:     zapcore.ISO8601TimeEncoder,
-			EncodeDuration: zapcore.StringDurationEncoder,
-			EncodeCaller:   zapcore.ShortCallerEncoder,
-		},
-		DisableStacktrace: true,
-		OutputPaths:       []string{"stdout"},
-		ErrorOutputPaths:  []string{"stderr"},
-	}
+	logger := NewDebugLoggerConfig()
+	logger.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	return logger
 }
 
-// NewDevelopmentLoggerConfig returns a new default development logger config.
+// NewDebugLoggerConfig returns a new default development logger config.
 func NewDebugLoggerConfig() zap.Config {
 	// from https://github.com/uber-go/zap/blob/2314926ec34c23ee21f3dd4399438469668f8097/config.go#L135
 	// but disable stacktraces, use same keys as prod, and color levels.
