@@ -173,14 +173,14 @@ func NewDebugLogger(name string) Logger {
 }
 
 // NewTestLogger directs logs to the go test logger.
-func NewTestLogger(t *testing.T) Logger {
-	logger, _ := NewObservedTestLogger(t)
+func NewTestLogger(tb testing.TB) Logger {
+	logger, _ := NewObservedTestLogger(tb)
 	return logger
 }
 
 // NewObservedTestLogger is like NewTestLogger but also saves logs to an in memory observer.
-func NewObservedTestLogger(t *testing.T) (Logger, *observer.ObservedLogs) {
-	logger := zaptest.NewLogger(t, zaptest.WrapOptions(zap.AddCaller()))
+func NewObservedTestLogger(tb testing.TB) (Logger, *observer.ObservedLogs) {
+	logger := zaptest.NewLogger(tb, zaptest.WrapOptions(zap.AddCaller()))
 	observerCore, observedLogs := observer.New(zap.LevelEnablerFunc(zapcore.DebugLevel.Enabled))
 	logger = logger.WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(c, observerCore)
