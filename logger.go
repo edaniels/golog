@@ -19,7 +19,7 @@ var (
 )
 
 func newDefaultLogger() Logger {
-	return zap.Must(NewDevelopmentLoggerConfig().Build()).Sugar()
+	return zap.Must(NewDebugLoggerConfig().Build()).Sugar()
 }
 
 // ReplaceGloabl replaces the global loggers and returns a function to reset

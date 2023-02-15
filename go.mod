@@ -7,4 +7,5 @@ require (
 	github.com/golangci/golangci-lint v1.38.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.23.0
+	golang.org/x/tools v0.6.0 // indirect
 )

@@ -21,11 +21,11 @@ type errorReportingCore struct {
 // into GCP Error Reporting.
 //
 // Example:
-// 	core := zap.Must(golog.NewLoggerConfigForGCP().Build(
+//
+//	core := zap.Must(golog.NewLoggerConfigForGCP().Build(
 //			gcpcore.WrapCore(gcpcore.CloudRunServiceAndVersion()),
 //		))
 //	logger := core.Sugar().Named("web_server")
-//
 func WrapCore(name, version string) zap.Option {
 	return zap.WrapCore(func(c zapcore.Core) zapcore.Core {
 		return &errorReportingCore{
